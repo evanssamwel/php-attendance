@@ -28,13 +28,5 @@ $page_title = ucwords(str_replace("_", " ", $page));
     </div>
     <?php include_once('inc/footer.php'); ?>
 
-
-    <tr>
-                                        <th class="text-center bg-transparent text-light">Students</th>
-                                        <th class="text-center bg-transparent text-light">Present</th>
-                                        <th class="text-center bg-transparent text-light">Late</th>
-                                        <th class="text-center bg-transparent text-light">Absent</th>
-                                        <th class="text-center bg-transparent text-light">Holiday</th>
-                                    </tr>
 </body>
 </html>
