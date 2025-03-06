@@ -1,0 +1,61 @@
+name: PHP Composer
+
+on:
+  pull_request:
+    branches: [ "main" ]
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write  # Allows the workflow to merge pull requests
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Validate composer.json and composer.lock
+      run: composer validate --strict
+
+    - name: Cache Composer packages
+      id: composer-cache
+      uses: actions/cache@v3
+      with:
+        path: vendor
+        key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-php-
+
+    - name: Install dependencies
+      run: composer install --prefer-dist --no-progress
+
+    # Run tests (Optional)
+    # - name: Run test suite
+    #   run: composer run-script test
+
+    # Check for merge conflicts before merging (using git)
+    - name: Check for merge conflicts
+      run: |
+        git fetch origin
+        git checkout main
+        git merge --no-commit --no-ff ${{ github.head_ref }} || echo "Merge conflicts detected"
+
+    # Merge pull request (automated) if no conflicts detected
+    - name: Auto merge PR if no conflicts
+      if: success() && github.event.pull_request.mergeable == true
+      run: |
+        echo "Merging pull request!"
+        git checkout main
+        git merge --no-ff ${{ github.head_ref }}
+        git push origin main
+
+    # (Optional) Automatically resolve merge conflicts
+    # You can try using an automated script for simple conflicts
+    - name: Resolve conflicts automatically (optional)
+      if: failure()  # This step runs only if previous merge failed (i.e., conflict detected)
+      run: |
+        echo "Attempting to resolve conflicts automatically..."
+        git merge --strategy-option ours ${{ github.head_ref }}  # Auto-resolve using 'ours' strategy
+        git push origin main
